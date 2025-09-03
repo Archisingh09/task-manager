@@ -12,19 +12,24 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Session setup
+// MongoDB Atlas connection
+const mongoURI = process.env.MONGO_URI;
+
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ MongoDB connected"))
+.catch(err => console.error("❌ MongoDB connection error:", err));
+
+// Session setup (stored in MongoDB Atlas)
 app.use(session({
-  secret: "mySecretKey",  // change for production
+  secret: "mySecretKey",  // ⚠️ change this for production
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: "mongodb://127.0.0.1:27017/taskdb" }),
+  store: MongoStore.create({ mongoUrl: mongoURI }),
   cookie: { maxAge: 1000 * 60 * 60 } // 1 hour
 }));
-
-// MongoDB
-mongoose.connect("mongodb://127.0.0.1:27017/taskdb")
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
 
 // User model
 const User = mongoose.model("User", new mongoose.Schema({
@@ -45,31 +50,34 @@ function requireLogin(req, res, next) {
 }
 
 // Routes
-//app.get("/", requireLogin, async (req, res) => {
-  //const tasks = await Task.find({ userId: req.session.userId });
-  //res.render("index", { tasks });
-//});
 app.get("/", (req, res) => {
   res.render("index", { user: req.session.username || null });
 });
 
+// Add task
 app.post("/add", requireLogin, async (req, res) => {
   await Task.create({ title: req.body.title, userId: req.session.userId });
   res.redirect("/home");
 });
 
+// Delete task
 app.get("/delete/:id", requireLogin, async (req, res) => {
   await Task.deleteOne({ _id: req.params.id, userId: req.session.userId });
   res.redirect("/home");
 });
 
+// Edit task
 app.get("/edit/:id", requireLogin, async (req, res) => {
   const task = await Task.findById(req.params.id);
   res.render("edit", { task });
 });
 
+// Update task
 app.post("/update/:id", requireLogin, async (req, res) => {
-  await Task.updateOne({ _id: req.params.id, userId: req.session.userId }, { title: req.body.title });
+  await Task.updateOne(
+    { _id: req.params.id, userId: req.session.userId },
+    { title: req.body.title }
+  );
   res.redirect("/home");
 });
 
@@ -92,17 +100,22 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-
+// Login
 app.get("/login", (req, res) => res.render("login"));
+
 app.post("/login", async (req, res) => {
   const user = await User.findOne({ username: req.body.username });
   if (!user) return res.send("User not found");
+
   const match = await bcrypt.compare(req.body.password, user.password);
   if (!match) return res.send("Wrong password");
+
   req.session.userId = user._id;
+  req.session.username = user.username; // save username
   res.redirect("/home");
 });
-// Home page
+
+// Home page (requires login)
 app.get("/home", requireLogin, async (req, res) => {
   try {
     const tasks = await Task.find({ userId: req.session.userId });
@@ -112,25 +125,12 @@ app.get("/home", requireLogin, async (req, res) => {
     res.send("Error loading home page.");
   }
 });
-app.post("/login", async (req, res) => {
-  const user = await User.findOne({ username: req.body.username });
-  if (!user) return res.send("User not found");
 
-  const match = await bcrypt.compare(req.body.password, user.password);
-  if (!match) return res.send("Wrong password");
-
-  req.session.userId = user._id;
-  req.session.username = user.username; // ✅ save username too
-  res.redirect("/home"); // go to home.ejs
-});
-
-
+// Logout
 app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/login"));
 });
 
-// Start
-app.listen(3000, () => console.log("Server running on http://localhost:3000"));
-
-
-
+// Start server (Render uses process.env.PORT)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
