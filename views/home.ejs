@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Task Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 20px 0;
+      color: #333;
+    }
+
+    .data {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .data input[type="text"] {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 250px;
+      font-size: 14px;
+    }
+
+    .data button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    .data button:hover {
+      background-color: #45a049;
+    }
+
+    .tasks {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 350px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .tasks ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .tasks li {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tasks li:last-child {
+      border-bottom: none;
+    }
+
+    .tasks a {
+      text-decoration: none;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+
+    .tasks a.edit {
+      color: #007bff;
+    }
+
+    .tasks a.edit:hover {
+      text-decoration: underline;
+    }
+
+    .tasks a:not(.edit) {
+      color: #dc3545;
+    }
+
+    .tasks a:not(.edit):hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+</head>
+<body>
+
+  
+  <h1>Task Manager</h1>
+
+
+  <form class="data" action="/add" method="POST">
+    <input type="text" name="title" placeholder="Enter task" required>
+    <button type="submit">Add Task</button>
+  </form>
+
+  <div class="tasks">
+  <ul>
+    <% if (tasks.length > 0) { %>
+      <% tasks.forEach(task => { %>
+        <li>
+          <%= task.title %> 
+          <a class="edit" href="/edit/<%= task._id %>"> Edit</a> | 
+          <a href="/delete/<%= task._id %>"> Delete</a>
+        </li>
+      <% }) %>
+    <% } else { %>
+      <li>No tasks found</li>
+    <% } %>
+  </ul>
+  </div>
+</body>
+</html>
