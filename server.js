@@ -9,8 +9,8 @@ const app = express();
 require("dotenv").config();
 
 mongoose.connect(process.env.MONGO_URI, {
-  serverSelectionTimeoutMS: 30000,  // wait up to 30s
-  ssl: true,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 })
 .then(() => console.log("✅ MongoDB Atlas connected"))
 .catch(err => console.error("❌ Connection error:", err));
