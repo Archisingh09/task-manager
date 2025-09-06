@@ -8,10 +8,12 @@ const path = require("path");
 const app = express();
 require("dotenv").config();
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ Connection error:", err));
-
+mongoose.connect(process.env.MONGO_URI , {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ MongoDB Atlas connected"))
+.catch(err => console.error("❌ Connection error:", err));
 
 // Session middleware (MUST be before routes)
 app.use(session({
@@ -27,12 +29,6 @@ app.use(session({
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-
-// Catch-all 404 (optional but useful)
-app.use((req, res) => {
-  res.status(404).send("Page not found");
-});
-
 
 // User model
 const User = mongoose.model("User", new mongoose.Schema({
@@ -136,4 +132,4 @@ app.get("/logout", (req, res) => {
 
 // Start server (Render uses process.env.PORT)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(` Server running on port ${PORT}`)); 
