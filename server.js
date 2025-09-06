@@ -6,30 +6,29 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 
 const app = express();
+require("dotenv").config();
 
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ MongoDB Atlas connected"))
+.catch(err => console.error("❌ Connection error:", err));
+
+// Session middleware (MUST be before routes)
+app.use(session({
+  secret: "supersecretkey", 
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+  }),
+  cookie: { maxAge: 1000 * 60 * 60 } 
+}));
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-
-// MongoDB Atlas connection
-const mongoURI = process.env.MONGO_URI;
-
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("✅ MongoDB connected"))
-.catch(err => console.error("❌ MongoDB connection error:", err));
-
-// Session setup (stored in MongoDB Atlas)
-app.use(session({
-  secret: "mySecretKey",  // ⚠️ change this for production
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: mongoURI }),
-  cookie: { maxAge: 1000 * 60 * 60 } // 1 hour
-}));
 
 // User model
 const User = mongoose.model("User", new mongoose.Schema({
