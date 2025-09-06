@@ -8,12 +8,10 @@ const path = require("path");
 const app = express();
 require("dotenv").config();
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("✅ MongoDB Atlas connected"))
-.catch(err => console.error("❌ Connection error:", err));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.error("❌ Connection error:", err));
+
 
 // Session middleware (MUST be before routes)
 app.use(session({
