@@ -30,6 +30,12 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+// Catch-all 404 (optional but useful)
+app.use((req, res) => {
+  res.status(404).send("Page not found");
+});
+
+
 // User model
 const User = mongoose.model("User", new mongoose.Schema({
   username: { type: String, unique: true },
