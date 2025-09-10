@@ -15,7 +15,6 @@ mongoose.connect(process.env.MONGO_URI , {
 .then(() => console.log("✅ MongoDB Atlas connected"))
 .catch(err => console.error("❌ Connection error:", err));
 
-// Session middleware (MUST be before routes)
 app.use(session({
   secret: "supersecretkey", 
   resave: false,
@@ -25,35 +24,36 @@ app.use(session({
   }),
   cookie: { maxAge: 1000 * 60 * 60 } 
 }));
-// Middleware
+
+
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// User model
+
 const User = mongoose.model("User", new mongoose.Schema({
   username: { type: String, unique: true },
   password: String
 }));
 
-// Task model
+
 const Task = mongoose.model("Task", new mongoose.Schema({
   title: String,
   userId: String
 }));
 
-// Middleware to check login
+
 function requireLogin(req, res, next) {
   if (!req.session.userId) return res.redirect("/login");
   next();
 }
 
-// Routes
+
 app.get("/", (req, res) => {
   res.render("index", { user: req.session.username || null });
 });
 
-// Add task
+//add task
 app.post("/add", requireLogin, async (req, res) => {
   await Task.create({ title: req.body.title, userId: req.session.userId });
   res.redirect("/home");
@@ -80,7 +80,8 @@ app.post("/update/:id", requireLogin, async (req, res) => {
   res.redirect("/home");
 });
 
-// Auth Routes
+
+
 app.get("/signup", (req, res) => res.render("signup"));
 
 app.post("/signup", async (req, res) => {
@@ -114,7 +115,8 @@ app.post("/login", async (req, res) => {
   res.redirect("/home");
 });
 
-// Home page (requires login)
+
+
 app.get("/home", requireLogin, async (req, res) => {
   try {
     const tasks = await Task.find({ userId: req.session.userId });
@@ -125,11 +127,12 @@ app.get("/home", requireLogin, async (req, res) => {
   }
 });
 
-// Logout
+
+
 app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/login"));
 });
 
-// Start server (Render uses process.env.PORT)
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(` Server running on port ${PORT}`)); 
